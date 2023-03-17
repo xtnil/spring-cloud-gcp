@@ -16,7 +16,7 @@ jobs:
         continue-on-error: false
         run: |
           set -x
-          if [[ ${{ github.event_name == 'pull_request' }} ]]; then
+          if ${{ github.event_name == 'pull_request' }}; then
             echo "Branch name from PR event: $GITHUB_HEAD_REF"
             echo "BASE_BRANCH_NAME=$GITHUB_HEAD_REF" >> $GITHUB_OUTPUT
           else
