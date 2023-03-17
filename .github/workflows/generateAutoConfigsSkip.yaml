@@ -1,0 +1,35 @@
+name: Generate Spring Auto-Configurations
+on:
+  pull_request_target:
+    types:
+      - [opened, synchronize, reopened]
+    branches-ignore:
+      - 'dependabot/maven/com.google.cloud-libraries-bom*'
+  workflow_dispatch:
+jobs:
+  generateLibraries:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Get branch name
+        id: get_branch_name
+        continue-on-error: false
+        run: |
+          set -x
+          if ${{ github.event_name == 'pull_request' }}; then
+            echo "Branch name from PR event: $GITHUB_HEAD_REF"
+            echo "BASE_BRANCH_NAME=$GITHUB_HEAD_REF" >> $GITHUB_OUTPUT
+          else
+            echo "Branch name from manual trigger: $GITHUB_REF_NAME"
+            echo "BASE_BRANCH_NAME=$GITHUB_REF_NAME" >> $GITHUB_OUTPUT
+          fi
+      - name: Fail if matching dependabot branch
+        continue-on-error: false
+        if: ${{ startsWith(steps.get_branch_name.outputs.BASE_BRANCH_NAME, 'dependabot/maven/com.google.cloud-libraries-bom') }}
+        run: |
+          echo "This generic workflow should not be triggered for a dependabot branch to update libraries-bom"
+          echo "Stopping workflow triggered from branch: ${{ steps.get_branch_name.outputs.BASE_BRANCH_NAME }}"
+          exit 1
+      - name: Skip generateLibraries check
+        continue-on-error: false
+        run: |
+          echo "generateLibraries not required for PR with branch: ${{ steps.get_branch_name.outputs.BASE_BRANCH_NAME }}"
